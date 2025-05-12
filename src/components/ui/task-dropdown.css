@@ -1,0 +1,72 @@
+.task-dropdown-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.task-dropdown {
+    margin-bottom: 0.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.task-title {
+    width: 100%;
+    padding: 1rem;
+    text-align: left;
+    background: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.task-title:after {
+    content: '▼';
+    font-size: 0.8em;
+    transition: transform 0.2s;
+}
+
+.task-title[aria-expanded="true"]:after {
+    transform: rotate(180deg);
+}
+
+.task-title:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.task-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: #f8fafc;
+}
+
+.step-item {
+    border-top: 1px solid #e2e8f0;
+}
+
+.step-button {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.step-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f1f5f9;
+}
+
+.step-button:not(:disabled):hover {
+    background: #e2e8f0;
+}
