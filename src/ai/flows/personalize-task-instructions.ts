@@ -1,4 +1,4 @@
-'use server';
+"use server";
 /**
  * @fileOverview A function for providing personalized, detailed instructions for a task,
  * incorporating positive reinforcement and adapting to the child's background and requirements,
@@ -9,7 +9,7 @@
  * - PersonalizeTaskInstructionsOutput - The return type for the personalizeTaskInstructions function.
  */
 
-import { ai } from '@/ai/ai-instance';
+import { ai } from "@/ai/ai-instance";
 
 export interface PersonalizeTaskInstructionsInput {
   task: string;
@@ -33,8 +33,8 @@ function extractJsonContent(text: string): string | null {
   }
 
   // If no markdown block, try to find the first '{' and last '}' or first '[' and last ']'
-  const firstBrace = text.indexOf('{');
-  const lastBrace = text.lastIndexOf('}');
+  const firstBrace = text.indexOf("{");
+  const lastBrace = text.lastIndexOf("}");
   if (firstBrace !== -1 && lastBrace > firstBrace) {
     const potentialJson = text.substring(firstBrace, lastBrace + 1);
     try {
@@ -45,8 +45,8 @@ function extractJsonContent(text: string): string | null {
     }
   }
 
-  const firstBracket = text.indexOf('[');
-  const lastBracket = text.lastIndexOf(']');
+  const firstBracket = text.indexOf("[");
+  const lastBracket = text.lastIndexOf("]");
   if (firstBracket !== -1 && lastBracket > firstBracket) {
     const potentialJson = text.substring(firstBracket, lastBracket + 1);
     try {
@@ -56,10 +56,13 @@ function extractJsonContent(text: string): string | null {
       // Not valid JSON, continue
     }
   }
-  
+
   // If all else fails, check if the trimmed text itself is a JSON object or array
   const trimmedText = text.trim();
-  if ((trimmedText.startsWith('{') && trimmedText.endsWith('}')) || (trimmedText.startsWith('[') && trimmedText.endsWith(']'))) {
+  if (
+    (trimmedText.startsWith("{") && trimmedText.endsWith("}")) ||
+    (trimmedText.startsWith("[") && trimmedText.endsWith("]"))
+  ) {
     try {
       JSON.parse(trimmedText);
       return trimmedText;
@@ -71,41 +74,49 @@ function extractJsonContent(text: string): string | null {
   return null;
 }
 
+const getPersonalizeTaskInstructionsPromptContent = (
+  input: PersonalizeTaskInstructionsInput
+) => {
+  const requirementsText = input.requirements
+    ? `Requirements: ${input.requirements}`
+    : "";
+  return `You are a friendly expert in writing simple, personalized step-by-step instructions for children.
 
-const getPersonalizeTaskInstructionsPromptContent = (input: PersonalizeTaskInstructionsInput) => {
-  const requirementsText = input.requirements ? `Requirements: ${input.requirements}` : '';
-  return `You are an expert educator specializing in creating personalized, very detailed instructions for children's tasks.
-Your goal is to break down complex tasks into small, manageable steps that are easy for a child to follow. Each step should include a brief, positive message to encourage the child. Use a friendly, conversational tone.
-Child should feel like they're talking to a friendly helper that will guide them through the task.
+Your job is to take the task below and break it down into **short, easy-to-understand steps**. Use **simple words** and **brief sentences** that even young kids can follow. Each step should feel friendly and clear — like a fun helper is guiding them.
+
+Every step must also include a short and cheerful **encouragement** message that keeps the child feeling motivated and proud.
+
+Keep the tone playful, kind, and positive. Avoid long explanations. Be helpful and fun!
 
 Task: ${input.task}
 Child's Background: ${input.childBackground}
 ${requirementsText}
 
-Please provide output in JSON format. Respond ONLY with a JSON object containing a single key "steps", which is an array of objects with keys "instruction" and "encouragement". Do NOT include any other text before or after the JSON object.
-Here is an example for making a sandwich:
+Output should be in this exact JSON format:
+Respond ONLY with a JSON object containing a single key "steps", which is an array of objects with keys "instruction" and "encouragement".
 
+Example Output:
 {
   "steps": [
     {
-      "instruction": "First, let's wash our hands really well!",
-      "encouragement": "Great job keeping clean!"
+      "instruction": "First, wash your hands!",
+      "encouragement": "Nice start! Clean and ready!"
     },
     {
-      "instruction": "Now, grab two slices of bread from the bag.",
-      "encouragement": "Perfect! Two slices ready to go."
+      "instruction": "Grab two slices of bread.",
+      "encouragement": "Awesome! You got it!"
     },
     {
-      "instruction": "Spread your favorite jam or peanut butter on one slice.",
-      "encouragement": "Looking good! Keep spreading."
+      "instruction": "Spread jam on one slice.",
+      "encouragement": "Yummy! Looking great!"
     },
     {
-      "instruction": "Place the other slice of bread on top.",
-      "encouragement": "Almost there!"
+      "instruction": "Put the other slice on top.",
+      "encouragement": "Almost done!"
     },
     {
-      "instruction": "Ta-da! You made a sandwich!",
-      "encouragement": "Fantastic! Enjoy your yummy sandwich."
+      "instruction": "Yay! You made a sandwich!",
+      "encouragement": "You're amazing! Enjoy it!"
     }
   ]
 }
@@ -116,84 +127,140 @@ export async function personalizeTaskInstructions(
   input: PersonalizeTaskInstructionsInput
 ): Promise<PersonalizeTaskInstructionsOutput> {
   try {
-    console.log(`personalizeTaskInstructions: Personalizing instructions for task: "${input.task}"`);
+    console.log(
+      `personalizeTaskInstructions: Personalizing instructions for task: "${input.task}"`
+    );
 
     const promptContent = getPersonalizeTaskInstructionsPromptContent(input);
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash', 
+      model: "gemini-2.0-flash",
       contents: promptContent,
     });
 
-    if (!response.candidates || response.candidates.length === 0 || !response.candidates[0].content) {
-        console.error("Personalize task instructions returned no candidates or content.");
-        return { 
-            steps: [{
-                instruction: "Could not generate instructions at this time.",
-                encouragement: "Please try again!"
-            }]
-        };
+    if (
+      !response.candidates ||
+      response.candidates.length === 0 ||
+      !response.candidates[0].content
+    ) {
+      console.error(
+        "Personalize task instructions returned no candidates or content."
+      );
+      return {
+        steps: [
+          {
+            instruction: "Could not generate instructions at this time.",
+            encouragement: "Please try again!",
+          },
+        ],
+      };
     }
 
     const rawModelText = response.candidates[0].content.parts[0]?.text;
 
     if (!rawModelText) {
-        console.error("Personalize task instructions returned no text in model response.");
-         return { 
-            steps: [{
-                instruction: "The helper seems to be quiet, no instructions received.",
-                encouragement: "Let's try asking again!"
-            }]
-        };
+      console.error(
+        "Personalize task instructions returned no text in model response."
+      );
+      return {
+        steps: [
+          {
+            instruction:
+              "The helper seems to be quiet, no instructions received.",
+            encouragement: "Let's try asking again!",
+          },
+        ],
+      };
     }
 
     console.log("Raw model response for task instructions:", rawModelText);
     const jsonTextToParse = extractJsonContent(rawModelText);
 
     if (!jsonTextToParse) {
-        console.error("Could not extract valid JSON content from model response for task instructions. Raw text was:", rawModelText);
-        return { 
-            steps: [{
-                instruction: "The instructions are a bit muddled right now.",
-                encouragement: "Maybe one more try?"
-            }]
-        };
+      console.error(
+        "Could not extract valid JSON content from model response for task instructions. Raw text was:",
+        rawModelText
+      );
+      return {
+        steps: [
+          {
+            instruction: "The instructions are a bit muddled right now.",
+            encouragement: "Maybe one more try?",
+          },
+        ],
+      };
     }
 
     try {
-        const parsedOutput: PersonalizeTaskInstructionsOutput = JSON.parse(jsonTextToParse);
-        console.log("Successfully parsed task instructions:", parsedOutput);
-        
-        if (!parsedOutput.steps || !Array.isArray(parsedOutput.steps) || parsedOutput.steps.some(step => typeof step.instruction !== 'string' || typeof step.encouragement !== 'string')) {
-             console.warn("Parsed JSON for task instructions has incorrect structure or missing 'steps' array. Parsed data:", parsedOutput, "Extracted JSON was:", jsonTextToParse);
-             return { 
-                steps: [{
-                    instruction: "The instruction steps look a bit unusual.",
-                    encouragement: "Let's try to get clearer ones!"
-                }]
-            };
-        }
+      const parsedOutput: PersonalizeTaskInstructionsOutput =
+        JSON.parse(jsonTextToParse);
+      console.log("Successfully parsed task instructions:", parsedOutput);
 
-        return parsedOutput;
-
-    } catch (jsonError) {
-        console.error("Failed to parse extracted JSON for task instructions:", jsonError, "Extracted text was:", jsonTextToParse, "Original raw text was:", rawModelText);
-        return { 
-            steps: [{
-                instruction: "Failed to process the instructions clearly.",
-                encouragement: "Give it another go!"
-            }]
+      if (
+        !parsedOutput.steps ||
+        !Array.isArray(parsedOutput.steps) ||
+        parsedOutput.steps.some(
+          (step) =>
+            typeof step.instruction !== "string" ||
+            typeof step.encouragement !== "string"
+        )
+      ) {
+        console.warn(
+          "Parsed JSON for task instructions has incorrect structure or missing 'steps' array. Parsed data:",
+          parsedOutput,
+          "Extracted JSON was:",
+          jsonTextToParse
+        );
+        return {
+          steps: [
+            {
+              instruction: "The instruction steps look a bit unusual.",
+              encouragement: "Let's try to get clearer ones!",
+            },
+          ],
         };
-    }
+      }
 
+      return parsedOutput;
+    } catch (jsonError) {
+      console.error(
+        "Failed to parse extracted JSON for task instructions:",
+        jsonError,
+        "Extracted text was:",
+        jsonTextToParse,
+        "Original raw text was:",
+        rawModelText
+      );
+      return {
+        steps: [
+          {
+            instruction: "Failed to process the instructions clearly.",
+            encouragement: "Give it another go!",
+          },
+        ],
+      };
+    }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during task personalization.';
-    console.error('Error in personalizeTaskInstructions main catch block. Task:', input.task, 'Error:', error);
-    return { 
-        steps: [{
-            instruction: `Oops! An error occurred: ${errorMessage.substring(0, 100)}...`,
-            encouragement: "Don't worry, we can try again!"
-        }]
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "An unknown error occurred during task personalization.";
+    console.error(
+      "Error in personalizeTaskInstructions main catch block. Task:",
+      input.task,
+      "Error:",
+      error
+    );
+    return {
+      steps: [
+        {
+          instruction: `Oops! An error occurred: ${errorMessage.substring(
+            0,
+            100
+          )}...`,
+          encouragement: "Don't worry, we can try again!",
+        },
+      ],
     };
   }
 }
