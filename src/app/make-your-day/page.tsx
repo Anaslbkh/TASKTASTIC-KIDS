@@ -23,6 +23,7 @@ import {generateMagicalPersonality} from '@/ai/flows/generate-magical-personalit
 import Image from 'next/image';
 import { useAuth } from '@/components/auth/auth-provider'; // Import useAuth
 import { useRouter } from 'next/navigation'; // Import useRouter for redirection
+import { TaskMap, defaultPathPoints } from '@/components/TaskMap';
 
 
 // Define the structure for each instruction step
@@ -65,6 +66,8 @@ export default function MakeYourDayPage() {
 
   const [dailyTasks, setDailyTasks] = useState<DailyTask | null>(null);
   const [dailyTaskTarget, setDailyTaskTarget] = useState<number>(3);
+  const [showTaskCountDialog, setShowTaskCountDialog] = useState<boolean>(false);
+  const [taskCountInput, setTaskCountInput] = useState<string>('3');
   const [magicalPersonality, setMagicalPersonality] = useState<MagicalPersonality | null>(null);
   const [isGeneratingHeroDetails, setIsGeneratingHeroDetails] = useState<boolean>(false);
   const [isGeneratingHeroImage, setIsGeneratingHeroImage] = useState<boolean>(false);
@@ -87,6 +90,17 @@ export default function MakeYourDayPage() {
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
+  const handleTaskCountSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const count = parseInt(taskCountInput, 10);
+    if (count > 0 && count <= 10) { // Limit to 10 tasks max
+      setDailyTaskTarget(count);
+      localStorage.setItem('dailyTaskCount', count.toString());
+      localStorage.setItem('dailyTaskCountLastUpdated', new Date().toISOString());
+      setShowTaskCountDialog(false);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await signOut();
@@ -95,6 +109,26 @@ export default function MakeYourDayPage() {
       console.error('Error signing out:', error);
     }
   };
+
+  // Check for saved task count preference
+  useEffect(() => {
+    const savedTaskCount = localStorage.getItem('dailyTaskCount');
+    const lastUpdated = localStorage.getItem('dailyTaskCountLastUpdated');
+    
+    if (savedTaskCount && lastUpdated) {
+      const lastUpdatedDate = new Date(lastUpdated);
+      const now = new Date();
+      const hoursDiff = (now.getTime() - lastUpdatedDate.getTime()) / (1000 * 60 * 60);
+      
+      if (hoursDiff < 24) {
+        setDailyTaskTarget(parseInt(savedTaskCount, 10));
+        return;
+      }
+    }
+    
+    // Show dialog if no valid preference found
+    setShowTaskCountDialog(true);
+  }, []);
 
   // Redirect if not authenticated or loading
   useEffect(() => {
@@ -317,6 +351,15 @@ export default function MakeYourDayPage() {
     });
   };
 
+  // Remove a single task by its description
+  const handleRemoveTask = (taskDescription: string) => {
+    setDailyTasks(prevDailyTasks => {
+      if (!prevDailyTasks) return prevDailyTasks;
+      const updatedTasks = prevDailyTasks.tasks.filter(taskItem => taskItem.task !== taskDescription);
+      return { ...prevDailyTasks, tasks: updatedTasks };
+    });
+  };
+
   const handleClearTasks = () => {
     if (!user) return;
     const newDailyTasks = { date: getCurrentDate(), tasks: [] };
@@ -427,7 +470,6 @@ export default function MakeYourDayPage() {
     );
   }
 
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white dark:from-purple-900 dark:to-gray-900">
       {/* Theme Toggle Floating Button */}
@@ -508,6 +550,11 @@ export default function MakeYourDayPage() {
              </p>
            </CardContent>
          </Card>
+             <TaskMap
+          tasks={dailyTasks ? dailyTasks.tasks.map((t, i) => ({ id: i, label: t.task })) : []}
+          completedTasks={dailyTasks ? dailyTasks.tasks.filter(t => t.steps.every(s => s.completed)).length : 0}
+          pathPoints={defaultPathPoints}
+        />
 
         <Card className={getCardClassName(1)}>
            <CardHeader>
@@ -603,7 +650,22 @@ export default function MakeYourDayPage() {
                   <span className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-purple-300 via-pink-200 to-yellow-200 dark:from-purple-800 dark:via-pink-900 dark:to-yellow-900 flex items-center justify-center text-3xl shadow-md">
                     {String.fromCodePoint(0x1F4CC + (taskIndex % 4))}
                   </span>
-                  <span className="ml-2">{taskItem.task}</span>
+                  <span className="ml-2 flex-1">{taskItem.task}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="ml-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900 rounded-full"
+                    aria-label="Remove task"
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleRemoveTask(taskItem.task);
+                    }}
+                  >
+                    <span className="sr-only">Remove</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </Button>
                 </summary>
                 <div className="p-6 pt-4">
                   <ul className="space-y-5">
@@ -639,6 +701,16 @@ export default function MakeYourDayPage() {
                 </div>
               </details>
             ))}
+            <div className="flex justify-end mt-6">
+              <Button
+                variant="outline"
+                className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-full text-lg shadow-md hover:shadow-lg transition-all"
+                onClick={handleClearTasks}
+                disabled={dailyTasks.tasks.length === 0}
+              >
+                Clear All Tasks
+              </Button>
+            </div>
           </div>
         )}
 
@@ -687,6 +759,45 @@ export default function MakeYourDayPage() {
           </Card>
         )}
       </div>
+
+      {/* Task Count Dialog */}
+      <Dialog open={showTaskCountDialog} onOpenChange={setShowTaskCountDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Daily Task Goal</DialogTitle>
+            <DialogDescription>
+              How many tasks would you like to complete today? (1-10)
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleTaskCountSubmit} className="space-y-4">
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="taskCount" className="text-right">
+                  Tasks:
+                </Label>
+                <div className="col-span-3">
+                  <Input
+                    id="taskCount"
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={taskCountInput}
+                    onChange={(e) => setTaskCountInput(e.target.value)}
+                    placeholder="Enter number of tasks"
+                    label="Number of tasks"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button type="submit" disabled={!taskCountInput || isNaN(parseInt(taskCountInput))}>
+                Set Goal
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
