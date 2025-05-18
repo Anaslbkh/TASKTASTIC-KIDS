@@ -5,15 +5,16 @@ interface BearCharacterProps {
   x: number;
   y: number;
   isMoving: boolean;
+  allTasksComplete?: boolean;
 }
 
-export const BearCharacter = ({ x, y, isMoving }: BearCharacterProps) => {
+export const BearCharacter = ({ x, y, isMoving, allTasksComplete }: BearCharacterProps) => {
   return (
     <motion.div
       className="relative z-10"
       style={{
         x: x - 20, // Center the bear on the path
-        y: y - 60, // Position above the path
+        y: y - 20, // Position above the path
       }}
       animate={{
         y: [0, -10, 0],
@@ -26,10 +27,10 @@ export const BearCharacter = ({ x, y, isMoving }: BearCharacterProps) => {
       }}
     >
       <Image
-        src="/bear.jpg"
-        alt="Cute bear wizard character"
-        width={80}
-        height={80}
+        src={allTasksComplete ? "/happy_teddy_bear_hungry.png" : "/full_bear.png"}
+        alt="Cute bear character"
+        width={150}
+        height={150}
         className={`transition-transform duration-300 ${isMoving ? 'scale-x-[-1]' : ''}`}
       />
     </motion.div>

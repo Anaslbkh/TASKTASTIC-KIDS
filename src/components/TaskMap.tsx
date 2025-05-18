@@ -126,7 +126,7 @@ export const TaskMap = ({ tasks, completedTasks, pathPoints, dailyTaskTarget }: 
       <div className="relative flex flex-col justify-center w-full h-full">
         {/* Bear in the center - always visible */}
         <div className="relative z-10 flex flex-col items-center">
-          <BearCharacter x={0} y={0} isMoving={false} />
+          <BearCharacter x={0} y={0} isMoving={false} allTasksComplete/>
         </div>
         {/* Bear's message - only show after a task is completed, or when all tasks are done */}
         {showMessage && (

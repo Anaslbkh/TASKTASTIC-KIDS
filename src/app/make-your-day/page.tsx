@@ -765,16 +765,16 @@ export default function MakeYourDayPage() {
       <Dialog open={showTaskCountDialog} onOpenChange={setShowTaskCountDialog}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Daily Task Goal</DialogTitle>
+            <DialogTitle>Set Your Quest Goal</DialogTitle>
             <DialogDescription>
-              How many tasks would you like to complete today? (1-10)
+              How many quests will you conquer today? (Pick 1-10)
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleTaskCountSubmit} className="space-y-4">
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="taskCount" className="text-right">
-                  Tasks:
+                  Quests:
                 </Label>
                 <div className="col-span-3">
                   <Input
@@ -784,8 +784,8 @@ export default function MakeYourDayPage() {
                     max="10"
                     value={taskCountInput}
                     onChange={(e) => setTaskCountInput(e.target.value)}
-                    placeholder="Enter number of tasks"
-                    label="Number of tasks"
+                    placeholder="Number of quests for today"
+                    label="Number of quests"
                     className="w-full"
                   />
                 </div>
