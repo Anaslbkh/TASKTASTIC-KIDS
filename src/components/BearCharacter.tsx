@@ -10,9 +10,9 @@ interface BearCharacterProps {
 export const BearCharacter = ({ x, y, isMoving }: BearCharacterProps) => {
   return (
     <motion.div
-      className="absolute z-10"
+      className="relative z-10"
       style={{
-        x: x - 30, // Center the bear on the path
+        x: x - 20, // Center the bear on the path
         y: y - 60, // Position above the path
       }}
       animate={{

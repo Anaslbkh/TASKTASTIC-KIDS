@@ -554,6 +554,7 @@ export default function MakeYourDayPage() {
           tasks={dailyTasks ? dailyTasks.tasks.map((t, i) => ({ id: i, label: t.task })) : []}
           completedTasks={dailyTasks ? dailyTasks.tasks.filter(t => t.steps.every(s => s.completed)).length : 0}
           pathPoints={defaultPathPoints}
+          dailyTaskTarget={dailyTaskTarget}
         />
 
         <Card className={getCardClassName(1)}>
