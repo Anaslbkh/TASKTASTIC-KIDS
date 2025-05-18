@@ -471,7 +471,7 @@ export default function MakeYourDayPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white dark:from-purple-900 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white dark:from-purple-900 dark:to-gray-900 max-w-[800px] mx-auto">
       {/* Theme Toggle Floating Button */}
       <button
         onClick={toggleTheme}
@@ -485,7 +485,7 @@ export default function MakeYourDayPage() {
           <Moon className="w-7 h-7 text-purple-700" />
         )}
       </button>
-      <nav className="bg-white shadow-sm">
+      <nav className="bg-white shadow-sm ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">

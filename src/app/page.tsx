@@ -171,47 +171,6 @@ export default function LandingPage() {
         .adventure-bg.character { left: 50%; bottom: 40px; width: 120px; transform: translateX(-50%); }
       `}</style>
 
-      {/* Navigation Bar */}
-      <nav className="bg-white/80 backdrop-blur-md shadow-md fixed top-0 left-0 w-full z-50 border-b-2 border-yellow-100">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center">
-            <img src="/TaskTastic Kids.png" alt="TaskTastic Kids Logo" className="h-10 w-auto" />
-          </div>
-
-          {/* Hamburger Menu for Mobile */}
-          <button
-            className="md:hidden text-blue-900 focus:outline-none"
-            onClick={toggleMenu}
-          >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
-
-          {/* Menu Items */}
-          <div
-            className={`${
-              isMenuOpen ? 'block' : 'hidden'
-            } md:flex md:items-center md:space-x-6`}
-          >
-            {user ? (
-              <Button
-                onClick={handleLogout}
-                className="bg-gradient-to-r from-yellow-200 via-pink-200 to-blue-200 hover:from-yellow-300 hover:to-blue-100 text-blue-900 font-bold py-2 px-4 rounded-full shadow-md border-2 border-white/60"
-              >
-                {isSigningOut ? 'Logging Out...' : 'Logout'}
-              </Button>
-            ) : (
-              <Button
-                onClick={handleLogin}
-                className="bg-gradient-to-r from-yellow-200 via-pink-200 to-blue-200 hover:from-yellow-300 hover:to-blue-100 text-blue-900 font-bold py-2 px-4 rounded-full shadow-md border-2 border-white/60"
-              >
-                {isSigningIn ? 'Logging In...' : 'Login'}
-              </Button>
-            )}
-          </div>
-        </div>
-      </nav>
-
       {/* Adjust content to account for fixed navbar */}
       <div className="pt-16">
         {/* Adventure background decorations (Lucide icons) */}
