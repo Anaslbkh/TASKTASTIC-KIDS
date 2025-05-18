@@ -82,7 +82,14 @@ export async function suggestAgeAppropriateTasks(
       return { tasks: [] };
     }
 
-    const text = response.candidates[0].content.parts[0]?.text;
+    let text: string | undefined = undefined;
+    if (
+      response.candidates[0].content &&
+      response.candidates[0].content.parts &&
+      response.candidates[0].content.parts.length > 0
+    ) {
+      text = response.candidates[0].content.parts[0]?.text;
+    }
 
     if (!text) {
       console.error("Suggest age appropriate tasks returned no text.");

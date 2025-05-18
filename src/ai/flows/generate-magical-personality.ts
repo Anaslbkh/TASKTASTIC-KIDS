@@ -57,13 +57,13 @@ function extractJsonContent(text: string): string | null {
 
 const getMagicalPersonalityPromptContent = (tasks: string[]) => {
   const tasksList = tasks.map((task) => `- ${task}`).join("\n");
-  return `You are a playful and imaginative assistant that creates magical characters for children based on the tasks they’ve completed today.
+  return `You are a playful and imaginative assistant that creates magical characters for children based on the tasks they've completed today.
 
 Analyze the list of tasks below and craft a unique magical personality that feels fun, inspiring, and rewarding for the child.
 
 Each magical personality must include:
 - A whimsical and memorable **name**
-- A **short description** (max 5 words) describing the character’s traits or powers
+- A **short description** (max 5 words) describing the character's traits or powers
 - A richly detailed **imagePrompt** that inspires a colorful, high-quality 3D illustration of the character
 
 Tasks completed:
@@ -71,7 +71,7 @@ ${tasksList}
 
 Make the magical personality reflect the nature of the tasks (e.g., cleaning, helping, reading), and include fantasy elements like sparkles, wings, magical gadgets, animal companions, or enchanted outfits.
 
-The image prompt should be full of creativity and color, suitable for a children’s magical universe.
+The image prompt should be full of creativity and color, suitable for a children's magical universe.
 
 Respond ONLY with a JSON object using the keys "name", "description", and "imagePrompt". Do not include any extra text.
 
@@ -117,7 +117,14 @@ export async function generateMagicalPersonality(
       };
     }
 
-    const rawModelText = response.candidates[0].content.parts[0]?.text;
+    let rawModelText: string | undefined = undefined;
+    if (
+      response.candidates[0].content &&
+      response.candidates[0].content.parts &&
+      response.candidates[0].content.parts.length > 0
+    ) {
+      rawModelText = response.candidates[0].content.parts[0]?.text;
+    }
 
     if (!rawModelText) {
       console.error(

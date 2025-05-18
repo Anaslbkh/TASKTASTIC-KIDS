@@ -156,7 +156,14 @@ export async function personalizeTaskInstructions(
       };
     }
 
-    const rawModelText = response.candidates[0].content.parts[0]?.text;
+    let rawModelText: string | undefined = undefined;
+    if (
+      response.candidates[0].content &&
+      response.candidates[0].content.parts &&
+      response.candidates[0].content.parts.length > 0
+    ) {
+      rawModelText = response.candidates[0].content.parts[0]?.text;
+    }
 
     if (!rawModelText) {
       console.error(
